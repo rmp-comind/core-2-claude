@@ -6,6 +6,7 @@ import secrets, net, api, ui
 TZ = getattr(secrets, "TZ_OFFSET_MIN", 0) * 60
 MY_IDS = getattr(secrets, "MY_IDS", ())
 CYCLE_MS = int(getattr(secrets, "CYCLE_S", 15) * 1000)  # auto-advance screens; 0 disables
+SLEEP_MS = int(getattr(secrets, "SLEEP_S", 600) * 1000)  # blank after this long untouched; 0 disables
 # seconds between refreshes; the Admin API asks for <= ~1 req/min sustained
 EVERY = {"costs": 6 * 3600, "hours": 300, "mins": 90, "cc": 1800}
 RETRY = 60
@@ -23,6 +24,7 @@ class App:
         self.due = {k: 0 for k in EVERY}
         self.daily = None
         self.tab = 0
+        self.blanked = False
         self.updated = None
         self.ntp_at = 0
 
@@ -109,27 +111,48 @@ class App:
         return "live data as of %02d:%02d  (API lag ~5 min)" % (t[3], t[4])
 
     def draw(self, status=None):
+        if self.blanked:
+            return
         try:
             batt = M5.Power.getBatteryLevel()
         except Exception:
             batt = None
         ui.render(self.tab, self.st, time.time() + TZ, status or self.status(), net.wifi_rssi(), batt)
 
-    def poll_buttons(self):
+    def poll_input(self):
+        """Returns (touched, tab): any touch/press at all, and the button tab pressed if any."""
         M5.update()
         for i, b in enumerate((M5.BtnA, M5.BtnB, M5.BtnC)):
             if b.wasPressed():
-                self.tab = i
-                return True
-        return False
+                return True, i
+        try:
+            return M5.Touch.getCount() > 0, None
+        except Exception:
+            return False, None
 
     def run(self):
-        last = shown = time.ticks_ms()
+        last = shown = touched_at = time.ticks_ms()
         while True:
-            changed = self.poll_buttons()
-            if changed:
-                shown = time.ticks_ms()  # a button press restarts the cycle from that screen
-            elif CYCLE_MS and time.ticks_diff(time.ticks_ms(), shown) >= CYCLE_MS:
+            touched, tab = self.poll_input()
+            changed = False
+            if touched:
+                touched_at = time.ticks_ms()
+                if self.blanked:  # the waking touch only wakes; it doesn't switch screens
+                    self.blanked = False
+                    self.draw()  # paint before the backlight comes on
+                    ui.wake()
+                    print("screen woke")
+                    shown = last = touched_at
+                elif tab is not None:
+                    self.tab = tab
+                    shown = touched_at  # a button press restarts the cycle from that screen
+                    changed = True
+            elif SLEEP_MS and not self.blanked and time.ticks_diff(time.ticks_ms(), touched_at) >= SLEEP_MS:
+                self.blanked = True
+                ui.blank()
+                print("screen blanked after %ds idle" % (SLEEP_MS // 1000))
+            # while blank: no cycling or redraws (draw() is a no-op), but data keeps refreshing
+            if not self.blanked and not changed and CYCLE_MS and time.ticks_diff(time.ticks_ms(), shown) >= CYCLE_MS:
                 self.tab = (self.tab + 1) % len(ui.TABS)
                 shown = time.ticks_ms()
                 changed = True

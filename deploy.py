@@ -6,7 +6,7 @@
 
     uv run deploy.py [--port /dev/cu.wchusbserial...]
 
-Reads secrets from .env (CLAUDE_APIKEY, WIFI_SSID, WIFI_PASS, MY_IDS, TZ_OFFSET_MIN, CYCLE_S),
+Reads secrets from .env (CLAUDE_APIKEY, WIFI_SSID, WIFI_PASS, MY_IDS, TZ_OFFSET_MIN, CYCLE_S, SLEEP_S),
 writes them to the device as /flash/secrets.py, uploads device/*, sets UIFlow's
 boot_option to 0 (run main.py directly, skip the launcher) and resets the board.
 """
@@ -44,9 +44,9 @@ def main():
         sys.exit("No Core2 serial port found; pass --port")
     e = env()
     ids = tuple(s.strip() for s in e.get("MY_IDS", "").split(",") if s.strip())
-    secrets = "ADMIN_KEY = %r\nWIFI_SSID = %r\nWIFI_PASS = %r\nMY_IDS = %r\nTZ_OFFSET_MIN = %d\nCYCLE_S = %s\n" % (
+    secrets = "ADMIN_KEY = %r\nWIFI_SSID = %r\nWIFI_PASS = %r\nMY_IDS = %r\nTZ_OFFSET_MIN = %d\nCYCLE_S = %s\nSLEEP_S = %s\n" % (
         e["CLAUDE_APIKEY"], e["WIFI_SSID"], e["WIFI_PASS"], ids, int(e.get("TZ_OFFSET_MIN", 0)),
-        float(e.get("CYCLE_S", 15)))
+        float(e.get("CYCLE_S", 15)), float(e.get("SLEEP_S", 600)))
     with tempfile.NamedTemporaryFile("w", suffix=".py", delete=False) as f:
         f.write(secrets)
     try:

@@ -9,13 +9,24 @@ MODEL_COLORS = (ACCENT, BLUE, GREEN, 0xC2A25E, 0xB07CC6)
 TABS = ("Org", "Team", "Me")
 
 F = M5.Lcd.FONTS
+BRIGHTNESS = 110
 _c = None
 
 
 def init():
     global _c
-    M5.Lcd.setBrightness(110)
+    M5.Lcd.setBrightness(BRIGHTNESS)
     _c = M5.Lcd.newCanvas(W, H, 16, True)
+
+
+def blank():
+    """Screen saver: all-black frame and backlight off."""
+    M5.Lcd.fillScreen(0)
+    M5.Lcd.setBrightness(0)
+
+
+def wake():
+    M5.Lcd.setBrightness(BRIGHTNESS)
 
 
 def money(cents):

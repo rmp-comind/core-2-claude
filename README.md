@@ -7,7 +7,7 @@ MicroPython (UIFlow2 2.5.3) dashboard for an M5Stack Core2. It polls the Anthrop
 - **Team**: Claude Code per-person/per-key spend, sessions and lines over the last 7 days.
 - **Me**: the same stats for the identities in `MY_IDS`.
 
-**Deploy:** `make deploy` (or `uv run deploy.py`). Run `make` to list the other targets: `logs`, `repl`, `reset`, `ls`, `preview` (renders the screens to `build/preview/` with live data), `backup`, `restore`, `flash-firmware`. Settings come from `.env`: `CLAUDE_APIKEY` (admin key), `WIFI_SSID`, `WIFI_PASS`, `MY_IDS` (comma-separated emails or API-key names), `TZ_OFFSET_MIN` (set to 0 when BST ends), `CYCLE_S` (seconds per screen when auto-cycling, default 15; 0 disables).
+**Deploy:** `make deploy` (or `uv run deploy.py`). Run `make` to list the other targets: `logs`, `repl`, `reset`, `ls`, `preview` (renders the screens to `build/preview/` with live data), `backup`, `restore`, `flash-firmware`. Settings come from `.env`: `CLAUDE_APIKEY` (admin key), `WIFI_SSID`, `WIFI_PASS`, `MY_IDS` (comma-separated emails or API-key names), `TZ_OFFSET_MIN` (set to 0 when BST ends), `CYCLE_S` (seconds per screen when auto-cycling, default 15; 0 disables), `SLEEP_S` (blank the screen and backlight after this many seconds without a touch, to avoid burn-in; default 600; 0 disables). Any touch wakes it; the waking touch doesn't switch screens.
 
 **Notes**
 - Today's spend is estimated: today's token counts × effective per-token rates calibrated from the last 7 days of real billed cost (backtest: $10.85 est. vs $10.90 actual). Usage data lags ~5 min; Claude Code analytics lag ~1 h and are daily.
