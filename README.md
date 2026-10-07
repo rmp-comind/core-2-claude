@@ -13,3 +13,9 @@ MicroPython (UIFlow2 2.5.3) dashboard for an M5Stack Core2. It polls the Anthrop
 - Today's spend is estimated: today's token counts × effective per-token rates calibrated from the last 7 days of real billed cost (backtest: $10.85 est. vs $10.90 actual). Usage data lags ~5 min; Claude Code analytics lag ~1 h and are daily.
 - TLS certificates are verified against the GTS roots in `device/ca.pem`. This firmware's mbedtls checks validity 30 years ahead of the clock, so `net.py` winds the RTC back for each handshake.
 - `firmware/factory-backup-16mb.bin` restores the original firmware: `uvx esptool --port <port> write-flash 0 firmware/factory-backup-16mb.bin`.
+
+## License
+
+MIT. See [LICENSE](LICENSE). Copyright (c) 2026 CoMind.
+
+`device/ca.pem` contains Google Trust Services' public root certificates. Firmware images and fonts are downloaded at build time and are not part of this repository. UIFlow2 and MicroPython are MIT-licensed, and Montserrat is under the SIL Open Font License.
